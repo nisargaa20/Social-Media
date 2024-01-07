@@ -9,7 +9,7 @@ class User(models.Model):
     bio = models.CharField(max_length=60, null=True, blank=True)
     location = models.CharField(max_length=20, null=True, blank=True)
     profession = models.CharField(max_length=20, null=True, blank=True)
-    pic = models.FileField(upload_to='profile',default='avtar.png')
+    pic = models.FileField(upload_to='profile',default='nisarga.jpg')
     followers = models.IntegerField(default=0)
     following = models.IntegerField(default=0)
 

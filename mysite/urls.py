@@ -1,22 +1,9 @@
-
-    
-from django.urls import path
-from User import views
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', views.index, name='index'),
-    path('register/', views.register, name='register'),
-    path('otp/', views.otp_fun, name='otp'),
-    path('login/', views.login, name='login'),
-    path('logout/', views.logout, name='logout'),
-    path('forgot/', views.forgot, name='forgot'),
-   
-    path('email_otp/', views.email_otp, name='email_otp'),
-
-    path('change_password/', views.change_password, name='change_password'),
-    path('change_email/', views.change_email, name='change_email')
-
-
-
-
-]
+    path('admin/', admin.site.urls),
+    path('', include('User.urls')),
+] + static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

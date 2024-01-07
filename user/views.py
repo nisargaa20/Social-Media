@@ -1,7 +1,7 @@
 from random import randrange
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail
-from User.models import User
+from User.models import Follow, User, Post, Comment
 from django.conf import settings as setting
 
 
@@ -9,11 +9,11 @@ from django.conf import settings as setting
 def index(request):
     try:
         session_user = User.objects.get(email=request.session['email'])
-        #for posts
+        
         posts = []
-        # session_users_posts
+      
         p2 = list(Post.objects.filter(user=session_user))
-        # session users' followings posts
+
         these_users_posts = Follow.objects.filter(who=session_user.id)
         for i in these_users_posts:
             p1 = list(Post.objects.filter(user=i.follows_whom))
@@ -21,10 +21,9 @@ def index(request):
                 posts.append(j)
         for k in p2:
             posts.insert(0,k)
-        # p1osts = Post.objects.filter()[::-1]
-        # posts = reversed(posts)
+       
         print(posts)
-        # print(p1osts)
+      
         comments = Comment.objects.all()[::-1]
         return render(request,'index.html',{'session_user':session_user, 'posts':posts, 'comments':comments})
     except:
@@ -86,11 +85,11 @@ def otp_fun(request):
 def login(request):
     try:
         session_user = User.objects.get(email=request.session['email'])
-        #for posts
+    
         posts = []
-        # session_users_posts
+      
         p2 = list(Post.objects.filter(user=session_user))
-        # session users' followings posts
+       
         these_users_posts = Follow.objects.filter(who=session_user.id)
         for i in these_users_posts:
             p1 = list(Post.objects.filter(user=i.follows_whom))
@@ -98,10 +97,7 @@ def login(request):
                 posts.append(j)
         for k in p2:
             posts.insert(0,k)
-        # p1osts = Post.objects.filter()[::-1]
-        # posts = reversed(posts)
-        
-        # print(p1osts)
+     
         comments = Comment.objects.all()[::-1]
         return render(request,'index.html',{'session_user':session_user, 'posts':posts, 'comments':comments})
 
@@ -112,11 +108,11 @@ def login(request):
                 if request.POST['password'] == uid.password:
                     request.session['email'] = request.POST['email']
                 session_user = User.objects.get(email=request.session['email'])
-                #for posts
+         
                 posts = []
-                # session_users_posts
+             
                 p2 = list(Post.objects.filter(user=session_user))
-                # session users' followings posts
+              
                 these_users_posts = Follow.objects.filter(who=session_user.id)
                 for i in these_users_posts:
                     p1 = list(Post.objects.filter(user=i.follows_whom))
@@ -124,10 +120,9 @@ def login(request):
                         posts.append(j)
                     for k in p2:
                         posts.insert(0,k)
-                # p1osts = Post.objects.filter()[::-1]
-                # posts = reversed(posts)
+             
                 print(posts)
-                # print(p1osts)
+          
                 comments = Comment.objects.all()[::-1]
                 return render(request,'index.html',{'session_user':session_user, 'posts':posts, 'comments':comments})
                 return render(request,'login.html',{'message':'Inncorrect password!!'})
