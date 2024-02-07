@@ -29,11 +29,16 @@ def index(request):
     except:
         return render(request,'login.html')
     
+from django.utils import timezone
+
 def view_posts(request):
+    if 'email' in request.session:
         session_user = User.objects.get(email=request.session['email'])
-        posts = Post.objects.filter(user=session_user)[::-1]
-        comments = Comment.objects.all()[::-1]
-        return render(request,'view_posts.html',{'session_user':session_user, 'posts':posts, 'comments':comments})
+        posts = Post.objects.filter(user=session_user).order_by('-date')
+        return render(request, 'view_posts.html', {'posts': posts})
+    else:
+        return render(request, 'login.html')
+
 
 
 
@@ -166,27 +171,25 @@ def notification(request):
 
 
 def profile(request):
-    if request.method == 'POST':
-        try:
+    if 'email' in request.session:
+        if request.method == 'POST':
+            try:
+                session_user = User.objects.get(email=request.session['email'])
+                session_user.fullname = request.POST.get('fullname', '')
+                session_user.bio = request.POST.get('bio', '')
+                session_user.location = request.POST.get('location', '')
+                session_user.profession = request.POST.get('profession', '')
+                if 'pic' in request.FILES:
+                    session_user.pic = request.FILES['pic']
+                session_user.save()
+            except User.DoesNotExist:
+                return render(request, 'login.html')
+            return render(request, 'profile.html', {'session_user': session_user})
+        else:
             session_user = User.objects.get(email=request.session['email'])
-            session_user.fullname = request.POST['fullname']
-            if request.POST['bio']:
-                session_user.bio = request.POST['bio']
-            if request.POST['location']:
-                session_user.location = request.POST['location']
-            if request.POST['profession']:
-                session_user.profession = request.POST['profession']
-            if request.FILES:
-                session_user.pic = request.FILES['pic']
-                session_user.save()
-            else:
-                session_user.save()
-                return render(request, 'profile.html',{'session_user':session_user})
-        except:
-            return render(request,'login.html')
+            return render(request, 'profile.html', {'session_user': session_user})
     else:
-        session_user = User.objects.get(email=request.session['email'])
-        return render(request, 'profile.html', {'session_user':session_user})
+        return render(request, 'login.html')
 
 
 
@@ -195,7 +198,7 @@ def add_post(request):
     if request.method == 'POST':
         if request.POST['private_status'] == 'public':
             Post.objects.create(
-                user = user_data,
+                user = session_user,  
                 caption = request.POST['caption'],
                 hashtag = request.POST['hashtag'],
                 pic = request.FILES['pic'],
@@ -203,14 +206,14 @@ def add_post(request):
             )
         else:
             Post.objects.create(
-                user = user_data,
+                user = session_user,  
                 caption = request.POST['caption'],
                 hashtag = request.POST['hashtag'],
                 pic = request.FILES['pic'],
                 private_status = True
             )
         
-        return render(request, 'add_post.html', {'msg':'Post Added Successfully!','session_user': session_user })
+        return render(request, 'add_post.html', {'msg':'Post Added Successfully!', 'session_user': session_user })
     return render(request, 'add_post.html',{'session_user':session_user})
 
 
@@ -246,11 +249,11 @@ def other_user_profile(request,pk):
         f1 = Follow.objects.filter(who=session_user, follows_whom=other_user)
         if not f1:
             disable_follow_button = False
-            # print(disable_follow_button)
+          
             return render(request, 'other_user_profile.html', {'other_user':other_user, 'session_user':session_user, 'disable':disable_follow_button})
         else:
             disable_follow_button = True
-            # print(disable_follow_button, f1)
+          
             return render(request, 'other_user_profile.html', {'other_user':other_user, 'session_user':session_user, 'disable':disable_follow_button})
 
 
@@ -403,10 +406,17 @@ def view_following(request,pk):
 
 
 def search(request):
-    session_user = User.objects.get(email=request.session['email'])
-    if request.method == 'POST':
-        word = str(request.POST['word'])
-        queried_data = User.objects.filter(fullname__icontains=word)
-        return render(request, 'search.html',{'users_collection':queried_data, 'session_user':session_user, 'return_word':word})
+    if 'email' in request.session:
+        try:
+            session_user = User.objects.get(email=request.session['email'])
+        except User.DoesNotExist:
+            session_user = None
     else:
-        return render(request,'search.html',{'session_user':session_user})
+        session_user = None
+
+    if request.method == 'POST':
+        word = str(request.POST.get('word', ''))
+        queried_data = User.objects.filter(fullname__icontains=word)
+        return render(request, 'search.html', {'users_collection': queried_data, 'session_user': session_user, 'return_word': word})
+    else:
+        return render(request, 'search.html', {'session_user': session_user})
